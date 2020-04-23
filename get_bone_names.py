@@ -34,8 +34,8 @@ def get_bones(filename):
     with open(filename, 'rb') as binary_file:
         binary_data = binary_file.read()
 
-    bones_offset = int.from_bytes(binary_data[0x80:0x84], 'big')
-    n_bones = int.from_bytes(binary_data[0x84:0x88], 'big')
+    bones_offset = int.from_bytes(binary_data[0x4C:0x50], 'big')
+    n_bones = int.from_bytes(binary_data[0x48:0x4C], 'big')
     for i in range(0, n_bones):
         bone = binary_data[bones_offset+2:bones_offset+19].decode().strip('\x00')
         bones.add(bone)
@@ -54,7 +54,7 @@ if __name__ == "__main__":
         bones = get_bones(args.File)
     else:
         bones = get_all_bones(args.File)
-    bones = [f"{key};{bones[key]}" for key in bones]
+        bones = [f"{key};{bones[key]}" for key in bones]
     name = args.name
     if not name:
         name = 'ouput.txt'
