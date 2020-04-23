@@ -3,6 +3,8 @@ import os
 import argparse
 import csv
 import io
+import json
+
 """
 0x80    Bones offset
 0x84    Number of bones
@@ -49,23 +51,19 @@ def load_data_table(origin, dest):
     return data_table
 
 def load_byte_table(origin_file, endianness):
-    extension = origin_file[-3:]
-    o_bone_dir, o_n_bones = OFFSETS[extension]
+    json_path = os.path.join('ids', origin_file + '.json')
+    with open(json_path, 'r') as f:
+        data = json.loads(f.read())
 
-    with open(origin_file, 'rb') as binary_file:
-        binary_data = binary_file.read()
+    for key in data:
+        c_data = data[key].to_bytes(2, endianness)
+        new_value = bytearray(b'\x00'*0x20)
+        new_value[0:2] = c_data
+        new_value[2:len(key)+2] = key.encode()
+        data[key] = bytes(new_value)
 
-    data_table = {}
-    offset_bones = int.from_bytes(binary_data[o_bone_dir:o_bone_dir+0x04], endianness)
-    n_bones = int.from_bytes(binary_data[o_n_bones:o_n_bones+4], endianness)
-    print(f"Offset: {hex(offset_bones)}, n_bones: {hex(n_bones)}")
-    for i in range(0, n_bones):
-        name_bone = binary_data[offset_bones+0x2:offset_bones+0x20].decode().strip('\x00')
-        data_bone = binary_data[offset_bones:offset_bones+0x20]
-        data_table[name_bone] = data_bone
-        offset_bones += 0x20
-    data_table[''] = b'\x00'*0x20
-    return data_table
+    data[''] = b'\x00'*0x20
+    return data
 
 def write_bytes(origin, data_table, byte_table, endianness):
     extension = origin[-3:]
@@ -77,6 +75,7 @@ def write_bytes(origin, data_table, byte_table, endianness):
     offset_bones = int.from_bytes(binary_data[o_bone_dir:o_bone_dir+0x04], endianness)
     n_bones = int.from_bytes(binary_data[o_n_bones:o_n_bones+4], endianness)
     print(offset_bones, n_bones)
+    print(byte_table)
 
     for i in range(0, n_bones):
         name_bone = binary_data[offset_bones+0x2:offset_bones+0x20].decode().strip('\x00')
@@ -94,6 +93,7 @@ def write_bytes(origin, data_table, byte_table, endianness):
         else:
             d_equivalent_bone = byte_table[equivalent_bone]
 
+        print(d_equivalent_bone)
         binary_data[offset_bones:offset_bones+0x20] = d_equivalent_bone
 
         offset_bones += 0x20
@@ -117,13 +117,12 @@ EXAMPLE
 
 Replace Yakuza 0 bones into Yakuza 5 bones (useful when porting a model
 from Yakuza 5 to Yakuza 0)
-    write_bones.exe -og y0 -dg y5 -i bones_from_y0.gmd -o bones_from_y5.gmd
+    write_bones.exe -ig y0 -og y5 -o bones_from_y5.gmd
 """
 
     parser = argparse.ArgumentParser(description=description, epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-ig', '--inputgame', required=True, action='store', help='Game origin')
     parser.add_argument('-og', '--outputgame', required=True, action='store', help='Game destination')
-    parser.add_argument('-i', '--inputfile', required=True, action='store', help='GMD input file')
     parser.add_argument('-o', '--outputfile', required=True, action='store', help='GMD output name')
 
     args = parser.parse_args()
@@ -135,6 +134,6 @@ from Yakuza 5 to Yakuza 0)
     origin_game = GAME_DESCRIPTIONS[args.inputgame]
     dest_game = GAME_DESCRIPTIONS[args.outputgame]
 
-    byte_table = load_byte_table(args.inputfile, origin_game['endianness'])
     data_table = load_data_table(origin_game, dest_game)
+    byte_table = load_byte_table(args.inputgame, origin_game['endianness'])
     write_bytes(args.outputfile, data_table, byte_table, dest_game['endianness'])
