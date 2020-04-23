@@ -9,6 +9,11 @@ import struct
 """
 ENDIANNESS = 'big'
 
+OFFSETS = {
+    'gmd': (0x80, 0x84),
+    'gmt': (0x4C, 0x48)
+}
+
 def get_all_bones(folder):
     files = os.listdir(folder)
     all_bones = {}
@@ -18,12 +23,13 @@ def get_all_bones(folder):
     return all_bones
 
 def get_bones(filename):
+    b_o, n_o = OFFSETS[filename[-3:]]
     bones = {}
     with open(filename, 'rb') as binary_file:
         binary_data = binary_file.read()
 
-    bones_offset = int.from_bytes(binary_data[0x80:0x84], ENDIANNESS)
-    n_bones = int.from_bytes(binary_data[0x84:0x88], ENDIANNESS)
+    bones_offset = int.from_bytes(binary_data[b_o:b_o+4], ENDIANNESS)
+    n_bones = int.from_bytes(binary_data[n_o:n_o+4], ENDIANNESS)
     print(hex(bones_offset))
     for i in range(0, n_bones):
         bone = binary_data[bones_offset+2:bones_offset+19].decode().strip('\x00')
