@@ -52,5 +52,5 @@ if __name__ == "__main__":
     if not name:
         name = 'output.txt'
     with open(name, 'w') as f:
-        f.write(json.dumps(bones))
+        f.write(json.dumps(bones, indent=4))
 
