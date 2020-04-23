@@ -1,44 +1,33 @@
 import sys
 import os
 import argparse
+import json
+import struct
 """
 0x80    Bones offset
 0x84    Number of bones
 """
-
-# if (len(sys.argv) == 1):
-#     test_file = './testing_files/c_am_bone.gmd'
-# else:
-#     test_file = sys.argv[1]
-# 
-# with open(test_file, 'rb') as binary_file:
-#     binary_data = binary_file.read()
 
 def get_all_bones(folder):
     files = os.listdir(folder)
     all_bones = {}
     for f in files:
         c_bones = get_bones(os.path.join(folder, f))
-        for bone in c_bones:
-            if bone not in all_bones:
-                all_bones[bone] = []
-            all_bones[bone].append(f)
-    # check if the bone is contained in all
-    for key in all_bones:
-        if len(all_bones[key]) == len(files):
-            all_bones[key] = 'all'
+        all_bones.update(c_bones)
     return all_bones
 
 def get_bones(filename):
-    bones = set()
+    bones = {}
     with open(filename, 'rb') as binary_file:
         binary_data = binary_file.read()
 
-    bones_offset = int.from_bytes(binary_data[0x4C:0x50], 'big')
-    n_bones = int.from_bytes(binary_data[0x48:0x4C], 'big')
+    bones_offset = int.from_bytes(binary_data[0x80:0x84], 'big')
+    n_bones = int.from_bytes(binary_data[0x84:0x88], 'big')
+    print(hex(bones_offset))
     for i in range(0, n_bones):
         bone = binary_data[bones_offset+2:bones_offset+19].decode().strip('\x00')
-        bones.add(bone)
+        _id = binary_data[bones_offset:bones_offset+2]
+        bones[bone] = _id.hex()
         bones_offset += 0x20
     return bones
 
@@ -54,12 +43,9 @@ if __name__ == "__main__":
         bones = get_bones(args.File)
     else:
         bones = get_all_bones(args.File)
-        bones = [f"{key};{bones[key]}" for key in bones]
     name = args.name
     if not name:
-        name = 'ouput.txt'
+        name = 'output.txt'
     with open(name, 'w') as f:
-        f.write('\n'.join(bones))
-
-
+        f.write(json.dumps(bones))
 
