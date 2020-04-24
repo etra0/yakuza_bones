@@ -27,7 +27,7 @@ GAME_DESCRIPTIONS = {
     'yk2': { 'endianness': 'little', 'csv_index': 2 },
     'y4': { 'endianness': 'big', 'csv_index': 4 },
     'y5': { 'endianness': 'big', 'csv_index': 5 },
-    'yds': { 'endianness': 'big', 'csv_index': 6}
+    'yds': { 'endianness': 'big', 'csv_index': 6},
     'yish': { 'endianness': 'big', 'csv_index': 7}
 }
 
