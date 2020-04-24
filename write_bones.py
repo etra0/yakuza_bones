@@ -22,10 +22,13 @@ origin & dest can be `y0` or `y5`
 
 # For the future
 GAME_DESCRIPTIONS = {
-    'y5': { 'endianness': 'big', 'csv_index': 1 },
     'y0': { 'endianness': 'big', 'csv_index': 0 },
-    'yk1': { 'endianness': 'little', 'csv_index': 0 },
-    'yk2': { 'endianness': 'little', 'csv_index': 0 },
+    'yk1': { 'endianness': 'little', 'csv_index': 1 },
+    'yk2': { 'endianness': 'little', 'csv_index': 2 },
+    'y4': { 'endianness': 'big', 'csv_index': 4 },
+    'y5': { 'endianness': 'big', 'csv_index': 5 },
+    'yds': { 'endianness': 'big', 'csv_index': 6}
+    'yish': { 'endianness': 'big', 'csv_index': 7}
 }
 
 # offset for the initial bone reading
@@ -109,7 +112,10 @@ Currently supported Games
     - Yakuza 0: y0
     - Yakuza Kiwami: yk1
     - Yakuza Kiwami 2: yk2
+    - Yakuza 4: y4
     - Yakuza 5: y5
+    - Yakuza Dead Souls: yds
+    - Yakuza Ishin: yish
 """
 
     epilog = """
