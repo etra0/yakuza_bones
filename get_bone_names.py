@@ -39,7 +39,6 @@ def get_bones(filename):
     return bones
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="A bone extractor tool")
     parser.add_argument('File', metavar='path', type=str, help='GMD file/path')
@@ -58,5 +57,5 @@ if __name__ == "__main__":
     if not name:
         name = 'output.txt'
     with open(name, 'w') as f:
-        f.write(json.dumps(bones, indent=4))
+        f.write(json.dumps(bones, indent=4, sort_keys=True))
 
