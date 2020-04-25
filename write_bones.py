@@ -68,17 +68,21 @@ def load_byte_table(origin_file, endianness):
     data[''] = b'\x00'*0x20
     return data
 
-def write_bytes(origin, data_table, byte_table, endianness):
+def write_bytes(origin, data_table, byte_table, endianness, path=''):
     extension = origin[-3:]
     o_bone_dir, o_n_bones = OFFSETS[extension]
 
-    with open(origin, 'rb') as binary_file:
+    if path != '':
+        destination = os.path.join(path, origin)
+    else:
+        destination = origin
+
+    with open(destination, 'rb') as binary_file:
         binary_data = bytearray(binary_file.read())
 
     offset_bones = int.from_bytes(binary_data[o_bone_dir:o_bone_dir+0x04], endianness)
     n_bones = int.from_bytes(binary_data[o_n_bones:o_n_bones+4], endianness)
     print(offset_bones, n_bones)
-    print(byte_table)
 
     for i in range(0, n_bones):
         name_bone = binary_data[offset_bones+0x2:offset_bones+0x20].decode().strip('\x00')
@@ -96,14 +100,25 @@ def write_bytes(origin, data_table, byte_table, endianness):
         else:
             d_equivalent_bone = byte_table[equivalent_bone]
 
-        print(d_equivalent_bone)
         binary_data[offset_bones:offset_bones+0x20] = d_equivalent_bone
 
         offset_bones += 0x20
 
 
-    with open(f"{origin}_modified", 'wb') as binary_file:
-        binary_file.write(binary_data)
+    if path != '':
+        print(path)
+        path = path.strip('\\')
+        new_path = f'{path}_modified'
+        try:
+            os.mkdir(new_path)
+        except:
+            pass
+        print(os.path.join(new_path, destination))
+        with open(f"{os.path.join(new_path, origin)}", 'wb') as binary_file:
+            binary_file.write(binary_data)
+    else:
+        with open(f"{origin}_modified", 'wb') as binary_file:
+            binary_file.write(binary_data)
 
 if __name__ == "__main__":
     description="""
@@ -124,12 +139,16 @@ EXAMPLE
 Replace Yakuza 0 bones into Yakuza 5 bones (useful when porting a model
 from Yakuza 5 to Yakuza 0)
     write_bones.exe -ig y0 -og y5 -o bones_from_y5.gmd
+
+If you want to replace an entire folder with GMT/GMD, add the -d flag:
+    write_bones.exe -ig y0 -og y5 -d -o bones_from_y5.gmd
 """
 
     parser = argparse.ArgumentParser(description=description, epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-ig', '--inputgame', required=True, action='store', help='Game origin')
     parser.add_argument('-og', '--outputgame', required=True, action='store', help='Game destination')
     parser.add_argument('-o', '--outputfile', required=True, action='store', help='GMD output name')
+    parser.add_argument('-d', '--dir', action='store_true', help='GMD output name')
 
     args = parser.parse_args()
     if args.inputgame not in GAME_DESCRIPTIONS:
@@ -142,4 +161,14 @@ from Yakuza 5 to Yakuza 0)
 
     data_table = load_data_table(origin_game, dest_game)
     byte_table = load_byte_table(args.inputgame, origin_game['endianness'])
-    write_bytes(args.outputfile, data_table, byte_table, dest_game['endianness'])
+
+    if args.dir:
+        files = os.listdir(args.outputfile)
+        for f in files:
+            if not f.endswith('gmt') and not f.endswith('gmd'):
+                continue
+            write_bytes(f, data_table, byte_table,
+                        dest_game['endianness'], args.outputfile)
+    else:
+        write_bytes(args.outputfile, data_table, byte_table,
+                    dest_game['endianness'])
