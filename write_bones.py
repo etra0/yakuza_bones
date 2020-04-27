@@ -148,7 +148,7 @@ If you want to replace an entire folder with GMT/GMD, add the -d flag:
     parser.add_argument('-ig', '--inputgame', required=True, action='store', help='Game origin')
     parser.add_argument('-og', '--outputgame', required=True, action='store', help='Game destination')
     parser.add_argument('-o', '--outputfile', required=True, action='store', help='GMD output name')
-    parser.add_argument('-d', '--dir', action='store_true', help='GMD output name')
+    parser.add_argument('-d', '--dir', action='store_true', help='The output is a dir')
 
     args = parser.parse_args()
     if args.inputgame not in GAME_DESCRIPTIONS:
