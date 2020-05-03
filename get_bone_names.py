@@ -18,6 +18,9 @@ def get_all_bones(folder):
     files = os.listdir(folder)
     all_bones = {}
     for f in files:
+        if not f.endswith('gmd'):
+            continue
+        print(f"Dumping {f}")
         c_bones = get_bones(os.path.join(folder, f))
         all_bones.update(c_bones)
     return all_bones
@@ -28,13 +31,19 @@ def get_bones(filename):
     with open(filename, 'rb') as binary_file:
         binary_data = binary_file.read()
 
-    bones_offset = int.from_bytes(binary_data[b_o:b_o+4], ENDIANNESS)
-    n_bones = int.from_bytes(binary_data[n_o:n_o+4], ENDIANNESS)
+    c_endianness = ENDIANNESS
+    endian_check = int.from_bytes(binary_data[0x04:0x06], ENDIANNESS)
+    # We just assume that if the endiannes check is 0, just use little
+    # 'cause that's the case for Kenzan
+    if endian_check == 0:
+        c_endianness = 'little'
+    bones_offset = int.from_bytes(binary_data[b_o:b_o+4], c_endianness)
+    n_bones = int.from_bytes(binary_data[n_o:n_o+4], c_endianness)
     print(hex(bones_offset))
     for i in range(0, n_bones):
         bone = binary_data[bones_offset+2:bones_offset+19].decode().strip('\x00')
         _id = binary_data[bones_offset:bones_offset+2]
-        bones[bone] = int.from_bytes(_id, ENDIANNESS)
+        bones[bone] = int.from_bytes(_id, c_endianness)
         bones_offset += 0x20
     return bones
 
