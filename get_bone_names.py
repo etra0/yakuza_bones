@@ -18,7 +18,7 @@ def get_all_bones(folder):
     files = os.listdir(folder)
     all_bones = {}
     for f in files:
-        if not f.endswith('gmd'):
+        if not f.endswith('gmd') and not f.endswith('gmt'):
             continue
         print(f"Dumping {f}")
         c_bones = get_bones(os.path.join(folder, f))
@@ -41,7 +41,7 @@ def get_bones(filename):
     n_bones = int.from_bytes(binary_data[n_o:n_o+4], c_endianness)
     print(hex(bones_offset))
     for i in range(0, n_bones):
-        bone = binary_data[bones_offset+2:bones_offset+19].decode().strip('\x00')
+        bone = binary_data[bones_offset+2:bones_offset+0x20].decode().strip('\x00')
         _id = binary_data[bones_offset:bones_offset+2]
         bones[bone] = int.from_bytes(_id, c_endianness)
         bones_offset += 0x20
